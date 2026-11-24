@@ -50,7 +50,7 @@ Názvy tlačítek jsou anglicky tak, jak je ukazuje GitHub. GitHub občas uprav�
 
 > U soukromého repozitáře (**Private**) vyžaduje ochrana z kroku 2 placený tarif GitHubu (Pro nebo Team). U veřejného je zdarma.
 
-## Krok 2 – Zapněte ochranu hlavní větve (nepovinné, avšak doporučené)
+## Krok 2 – Zapněte ochranu hlavní větve
 
 Tento krok je nepovinný, avšak velmi doporučený. Ochrana zajistí, že se do hlavní větve nic nedostane jinak než navrženou změnou (pull requestem), kterou schválíte. Platí i pro agenta.
 
@@ -127,9 +127,9 @@ Klíč zadávejte jen v okně terminálu, nikdy v konverzaci s agentem. Přihlá
 Zkopírujte tento text do konverzace s agentem a doplňte hodnoty v lomených závorkách:
 
 ```text
-Inicializuj nový projekt SDLC.AI podle AGENTS.md z repozitáře erikni/sdlc-ai-init.
+Inicializuj nový projekt SDLC.AI podle AGENTS.md z repozitáře https://github.com/erikni/sdlc-ai-init.
 Repozitář: <váš-účet>/<název-projektu>
-Verze metodiky: nejnovější vydaná
+Verze metodiky: nejnovější vydaná dle https://github.com/erikni/sdlc-ai/releases
 Jazyk komunikace: čeština
 Web projektu: <adresa, nebo „zatím žádný">
 Nasazení: <„Cloudflare", „lokální Docker", nebo „žádné">
