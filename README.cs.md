@@ -50,9 +50,9 @@ Názvy tlačítek jsou anglicky tak, jak je ukazuje GitHub. GitHub občas uprav�
 
 > U soukromého repozitáře (**Private**) vyžaduje ochrana z kroku 2 placený tarif GitHubu (Pro nebo Team). U veřejného je zdarma.
 
-## Krok 2 – Zapněte ochranu hlavní větve
+## Krok 2 – Zapněte ochranu hlavní větve (nepovinné, avšak doporučené)
 
-Ochrana zajistí, že se do hlavní větve nic nedostane jinak než navrženou změnou (pull requestem), kterou schválíte. Platí i pro agenta.
+Tento krok je nepovinný, avšak velmi doporučený. Ochrana zajistí, že se do hlavní větve nic nedostane jinak než navrženou změnou (pull requestem), kterou schválíte. Platí i pro agenta.
 
 1. Na stránce repozitáře klikněte nahoře na **Settings**.
 2. V levém menu klikněte na **Rules** a pak **Rulesets**.
