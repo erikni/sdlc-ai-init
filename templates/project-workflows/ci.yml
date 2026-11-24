@@ -1,0 +1,21 @@
+# Thin caller — copy into your project as .github/workflows/ci.yml
+# It only sets variables and calls the shared SDLC.AI workflow. When the shared
+# logic changes, the moving tag @v1 propagates it without editing this file.
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  ci:
+    uses: erikni/sdlc-ai-init/.github/workflows/ci.yml@v1
+    with:
+      # Adjust these variables to your project; leave empty to skip a step.
+      node_version: ""
+      python_version: "3.11"
+      install_command: ""
+      build_command: ""
+      test_command: ""
+      run_docs_check: true
