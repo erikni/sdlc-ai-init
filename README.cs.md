@@ -17,8 +17,8 @@ Tento repozitář (`erikni/sdlc-ai-init`) je **veřejný bootstrap**: stačí k 
 Otevřete nástroj s agentem a zkopírujte mu tento pokyn:
 
 ```text
-Proveď mě úvodním nastavením nového projektu podle skills/ONBOARDING.cs.md
-z repozitáře erikni/sdlc-ai-init. Nejsem programátor, veď mě krok za krokem.
+Proveď mě úvodním nastavením nového projektu podle skills/ONBOARDING.md
+z repozitáře https://github.com/erikni/sdlc-ai-init. Nejsem programátor, veď mě krok za krokem.
 ```
 
 Agent vás provede vším popsaným níže: zkontroluje, co na počítači chybí, řekne, kam kliknout, každý krok si sám ověří a co jde udělat příkazem, nabídne udělat sám. Hesla ani přístupové klíče nikdy nepište do konverzace; zadáváte je jen vy sami, v prohlížeči nebo ve vlastním okně terminálu.
