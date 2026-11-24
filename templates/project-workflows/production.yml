@@ -1,0 +1,17 @@
+# Thin caller — copy into your project as .github/workflows/production.yml
+# Sets variables + passes secrets by name; logic lives in the shared workflow.
+name: Production
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  production:
+    uses: erikni/sdlc-ai-init/.github/workflows/production.yml@v1
+    with:
+      deploy_provider: ""        # cloudflare | DOCKER | '' (empty = N/A)
+      site_url: ""               # empty = production_verify is N/A
+    secrets:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

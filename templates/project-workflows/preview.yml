@@ -1,0 +1,16 @@
+# Thin caller — copy into your project as .github/workflows/preview.yml
+# Sets variables + passes secrets by name; logic lives in the shared workflow.
+name: Preview
+
+on:
+  pull_request:
+
+jobs:
+  preview:
+    uses: erikni/sdlc-ai-init/.github/workflows/preview.yml@v1
+    with:
+      deploy_provider: ""        # cloudflare | DOCKER | '' (empty = N/A)
+      preview_url_pattern: ""
+    secrets:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

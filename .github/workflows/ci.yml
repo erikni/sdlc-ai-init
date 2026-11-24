@@ -1,0 +1,71 @@
+name: CI (reusable)
+
+# Shared SDLC.AI CI workflow. Projects call it from a thin caller that only
+# passes variables and secrets; the logic lives here and is updated centrally.
+# Caller example: see templates/project-workflows/ci.yml.
+
+on:
+  workflow_call:
+    inputs:
+      node_version:
+        description: Node.js version (empty = skip Node setup)
+        type: string
+        default: ""
+      python_version:
+        description: Python version for docs-check and Python projects
+        type: string
+        default: "3.11"
+      install_command:
+        description: Dependency install command (empty = skip)
+        type: string
+        default: ""
+      build_command:
+        description: Build command (empty = skip)
+        type: string
+        default: ""
+      test_command:
+        description: Test command (empty = skip)
+        type: string
+        default: ""
+      run_docs_check:
+        description: Run skills/docs-check if present
+        type: boolean
+        default: true
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        if: inputs.node_version != ''
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node_version }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python_version }}
+
+      - name: Install dependencies
+        if: inputs.install_command != ''
+        run: ${{ inputs.install_command }}
+
+      - name: Build
+        if: inputs.build_command != ''
+        run: ${{ inputs.build_command }}
+
+      - name: Test
+        if: inputs.test_command != ''
+        run: ${{ inputs.test_command }}
+
+      - name: Docs check
+        if: inputs.run_docs_check && hashFiles('skills/docs-check/docs_check.py') != ''
+        run: |
+          if [ -f skills/docs-check/requirements.txt ]; then
+            pip install -r skills/docs-check/requirements.txt
+          fi
+          python3 skills/docs-check/docs_check.py --strict
