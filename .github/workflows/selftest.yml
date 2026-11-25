@@ -1,0 +1,28 @@
+name: Self-test (reusable workflows)
+
+# Proves the shared reusable workflows are callable and green on the N/A path
+# (empty DEPLOY_PROVIDER). Runs in this init repo itself; it is not distributed
+# to projects. Provider deploy with real credentials is verified per project.
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+    with:
+      python_version: "3.11"
+      run_docs_check: true
+
+  preview-na:
+    uses: ./.github/workflows/preview.yml
+    with:
+      deploy_provider: ""
+
+  production-na:
+    uses: ./.github/workflows/production.yml
+    with:
+      deploy_provider: ""
+      site_url: ""

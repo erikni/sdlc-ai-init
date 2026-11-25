@@ -1,9 +1,9 @@
 name: Production deploy (reusable)
 
 # Shared SDLC.AI production workflow. Wraps the DEPLOY_PROVIDER adapter contract
-# (DEPLOY.*.md) and runs only from the default branch. An empty provider is N/A.
-# An empty site_url disables production_verify only (recorded as N/A). Secrets are
-# passed by name from the caller; never hardcode them.
+# (DEPLOY.*.md) and runs only from the default branch (otherwise it skips, it does
+# not fail). An empty provider is N/A. An empty site_url disables production_verify
+# only (recorded as N/A). Secrets are passed by name from the caller; never hardcode.
 
 on:
   workflow_call:
@@ -16,6 +16,14 @@ on:
         description: Production URL (empty = production_verify is N/A)
         type: string
         default: ""
+      wrangler_command:
+        description: Wrangler command for cloudflare production deploy
+        type: string
+        default: "pages deploy"
+      dockerfile_path:
+        description: Dockerfile path for the DOCKER adapter
+        type: string
+        default: "Dockerfile"
     secrets:
       CLOUDFLARE_API_TOKEN:
         required: false
@@ -26,44 +34,64 @@ jobs:
   production:
     runs-on: ubuntu-latest
     steps:
-      - name: Guard default branch
+      - name: Default-branch gate
+        id: gate
         run: |
           set -euo pipefail
-          if [ "${GITHUB_REF}" != "refs/heads/${{ github.event.repository.default_branch }}" ]; then
-            echo "Production deploy runs only from the default branch (got ${GITHUB_REF})." >&2
-            exit 1
+          if [ "${GITHUB_REF}" = "refs/heads/${{ github.event.repository.default_branch }}" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Not the default branch (${GITHUB_REF}) -> production deploy skipped."
           fi
 
+      - name: No provider (N/A)
+        if: steps.gate.outputs.run == 'true' && inputs.deploy_provider == ''
+        run: echo "DEPLOY_PROVIDER is empty -> production is N/A, nothing deployed."
+
       - name: Checkout
+        if: steps.gate.outputs.run == 'true' && inputs.deploy_provider != ''
         uses: actions/checkout@v4
 
-      - name: Production deploy (adapter dispatch)
+      - name: Check cloudflare secrets
+        if: steps.gate.outputs.run == 'true' && inputs.deploy_provider == 'cloudflare'
         env:
-          DEPLOY_PROVIDER: ${{ inputs.deploy_provider }}
-          SITE_URL: ${{ inputs.site_url }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
           set -euo pipefail
-          case "${DEPLOY_PROVIDER}" in
-            "")
-              echo "DEPLOY_PROVIDER is empty -> production is N/A, nothing deployed."
-              ;;
-            cloudflare)
-              echo "Adapter: follow DEPLOY-CF.*.md (standard production deploy from default branch)."
-              echo "TODO(#89): implement provider deploy."
-              ;;
-            DOCKER)
-              echo "Adapter: follow DEPLOY-DOCKER.*.md (production container)."
-              echo "TODO(#89): implement provider deploy."
-              ;;
-            *)
-              echo "Unknown DEPLOY_PROVIDER '${DEPLOY_PROVIDER}': BLOCKED, no improvised production action." >&2
-              exit 1
-              ;;
-          esac
+          if [ -z "${TOKEN}" ]; then
+            echo "cloudflare selected but CLOUDFLARE_API_TOKEN is missing -> BLOCKED" >&2
+            exit 1
+          fi
+      - name: Cloudflare production deploy
+        if: steps.gate.outputs.run == 'true' && inputs.deploy_provider == 'cloudflare'
+        uses: cloudflare/wrangler-action@v3.14.1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: ${{ inputs.wrangler_command }}
+
+      - name: Docker production build
+        if: steps.gate.outputs.run == 'true' && inputs.deploy_provider == 'DOCKER'
+        env:
+          DOCKERFILE: ${{ inputs.dockerfile_path }}
+        run: |
+          set -euo pipefail
+          if [ ! -f "${DOCKERFILE}" ]; then
+            echo "Dockerfile '${DOCKERFILE}' not found -> BLOCKED" >&2
+            exit 1
+          fi
+          docker build -f "${DOCKERFILE}" -t "prod-${GITHUB_SHA}" .
+          echo "Built production image prod-${GITHUB_SHA}; run per DEPLOY-DOCKER.*.md."
+
+      - name: Unknown provider
+        if: steps.gate.outputs.run == 'true' && inputs.deploy_provider != '' && inputs.deploy_provider != 'cloudflare' && inputs.deploy_provider != 'DOCKER'
+        run: |
+          echo "Unknown DEPLOY_PROVIDER '${{ inputs.deploy_provider }}' -> BLOCKED, no improvised production action." >&2
+          exit 1
 
       - name: Production verify
+        if: steps.gate.outputs.run == 'true'
         env:
           SITE_URL: ${{ inputs.site_url }}
         run: |
@@ -71,5 +99,6 @@ jobs:
           if [ -z "${SITE_URL}" ]; then
             echo "production_verify: N/A (SITE_URL is not set)"
           else
-            echo "production_verify: smoke-test ${SITE_URL} (TODO #89: real verification)."
+            echo "production_verify: smoke-test ${SITE_URL}"
+            curl -fsS --retry 3 --max-time 30 "${SITE_URL}" >/dev/null && echo "reachable" || { echo "SITE_URL not reachable" >&2; exit 1; }
           fi
