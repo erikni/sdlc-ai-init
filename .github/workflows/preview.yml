@@ -1,9 +1,9 @@
 name: Preview deploy (reusable)
 
 # Shared SDLC.AI preview workflow. Wraps the DEPLOY_PROVIDER adapter contract
-# from the methodology (DEPLOY.*.md). An empty provider is a valid no-op (N/A):
-# the workflow succeeds and deploys nothing. Secrets are passed by name from the
-# caller via `secrets:`; never hardcode them.
+# (DEPLOY.*.md). An empty provider is a valid no-op (N/A): the workflow succeeds
+# and deploys nothing. Secrets are passed by name from the caller via `secrets:`;
+# never hardcode them.
 
 on:
   workflow_call:
@@ -16,55 +16,69 @@ on:
         description: Pattern used only to validate the obtained preview URL
         type: string
         default: ""
+      wrangler_command:
+        description: Wrangler command for cloudflare preview (e.g. 'pages deploy dist')
+        type: string
+        default: "pages deploy"
+      dockerfile_path:
+        description: Dockerfile path for the DOCKER adapter
+        type: string
+        default: "Dockerfile"
     secrets:
       CLOUDFLARE_API_TOKEN:
         required: false
       CLOUDFLARE_ACCOUNT_ID:
         required: false
-    outputs:
-      preview_url:
-        description: Verified preview URL (empty when N/A)
-        value: ${{ jobs.preview.outputs.preview_url }}
 
 jobs:
   preview:
     runs-on: ubuntu-latest
-    outputs:
-      preview_url: ${{ steps.deploy.outputs.preview_url }}
     steps:
+      - name: No provider (N/A)
+        if: inputs.deploy_provider == ''
+        run: echo "DEPLOY_PROVIDER is empty -> preview is N/A, nothing deployed."
+
       - name: Checkout
+        if: inputs.deploy_provider != ''
         uses: actions/checkout@v4
 
-      - name: Preview deploy (adapter dispatch)
-        id: deploy
+      # --- cloudflare adapter (DEPLOY-CF.*.md) ---
+      - name: Check cloudflare secrets
+        if: inputs.deploy_provider == 'cloudflare'
         env:
-          DEPLOY_PROVIDER: ${{ inputs.deploy_provider }}
-          PREVIEW_URL_PATTERN: ${{ inputs.preview_url_pattern }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
           set -euo pipefail
-          case "${DEPLOY_PROVIDER}" in
-            "")
-              echo "DEPLOY_PROVIDER is empty -> preview is N/A, nothing deployed."
-              echo "preview_url=" >> "$GITHUB_OUTPUT"
-              ;;
-            cloudflare)
-              echo "::group::cloudflare preview adapter"
-              echo "Adapter: follow DEPLOY-CF.*.md (wrangler/pages deploy of this HEAD)."
-              echo "TODO(#89): implement provider deploy; must output a real, verified URL."
-              echo "::endgroup::"
-              echo "preview_url=" >> "$GITHUB_OUTPUT"
-              ;;
-            DOCKER)
-              echo "::group::DOCKER preview adapter"
-              echo "Adapter: follow DEPLOY-DOCKER.*.md (build image, run container for this HEAD)."
-              echo "TODO(#89): implement provider deploy; must output a real, verified URL."
-              echo "::endgroup::"
-              echo "preview_url=" >> "$GITHUB_OUTPUT"
-              ;;
-            *)
-              echo "Unknown DEPLOY_PROVIDER '${DEPLOY_PROVIDER}': BLOCKED, no improvised deploy." >&2
-              exit 1
-              ;;
-          esac
+          if [ -z "${TOKEN}" ]; then
+            echo "cloudflare selected but CLOUDFLARE_API_TOKEN is missing -> BLOCKED" >&2
+            exit 1
+          fi
+      - name: Cloudflare preview deploy
+        if: inputs.deploy_provider == 'cloudflare'
+        uses: cloudflare/wrangler-action@v3.14.1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: ${{ inputs.wrangler_command }}
+
+      # --- DOCKER adapter (DEPLOY-DOCKER.*.md): build is the CI-verifiable part;
+      #     the actual preview container runs locally per the adapter ---
+      - name: Docker preview build
+        if: inputs.deploy_provider == 'DOCKER'
+        env:
+          DOCKERFILE: ${{ inputs.dockerfile_path }}
+        run: |
+          set -euo pipefail
+          if [ ! -f "${DOCKERFILE}" ]; then
+            echo "Dockerfile '${DOCKERFILE}' not found -> BLOCKED" >&2
+            exit 1
+          fi
+          docker build -f "${DOCKERFILE}" -t "preview-${GITHUB_SHA}" .
+          echo "Built preview image preview-${GITHUB_SHA}; preview container/URL per DEPLOY-DOCKER.*.md (local)."
+
+      # --- unknown provider: no improvised deploy ---
+      - name: Unknown provider
+        if: inputs.deploy_provider != '' && inputs.deploy_provider != 'cloudflare' && inputs.deploy_provider != 'DOCKER'
+        run: |
+          echo "Unknown DEPLOY_PROVIDER '${{ inputs.deploy_provider }}' -> BLOCKED, no improvised deploy." >&2
+          exit 1
