@@ -1,6 +1,6 @@
 # ONBOARDING – průvodce úvodním nastavením
 
-**Verze:** 3.0.0 · **Typ:** skill spouštěný na pokyn
+**Verze:** 2.0.1 · **Typ:** skill spouštěný na pokyn
 
 Vykonatelný postup pro AI agenta, který běží na počítači uživatele (například Claude Code nebo OpenAI Codex) a provede člověka krok za krokem nastavením. Člověk nemusí být programátor. Závazná pravidla a hranice public/private jsou ve veřejném [AGENTS.md](../AGENTS.md); lidské kroky klikáním jsou v [README.md](../README.md). Tento skill obsahuje detailní fáze a ověřovací příkazy a tyto normativní instrukce nedubluje.
 
