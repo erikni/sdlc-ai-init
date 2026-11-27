@@ -1,0 +1,73 @@
+flowchart TD
+    A(["Start onboarding"]) --> MT["Meeting s Erikem<br/>calendly.com/erik-brozek<br/>vybrat variantu SDLC AI"]
+    MT --> V1{"Varianta?"}
+    V1 -- outsourcing --> OUT["Vyvoj zajisti Erik / tym<br/>klient nepotrebuje READ"]
+    OUT --> OUTX(["Predani vyvoje"])
+    V1 -- "vlastni vyvoj" --> RR["Pozadat o READ prava<br/>na erikni/sdlc-ai"]
+    RR --> A0["Nainstalovat agenta na PC:<br/>Claude Code nebo Codex"]
+    A0 --> B{"git, gh, Python<br/>nainstalovany?"}
+    B -- ne --> B1["Nabidnout instalaci<br/>z oficialnich zdroju"] --> B
+    B -- ano --> B2["Doporucit (volitelne):<br/>GitHub Desktop + Mobile"]
+    B2 --> C{"Prihlasen na<br/>GitHub / gh?"}
+    C -- ne --> C1["Clovek: gh auth login<br/>+ login github.com"] --> C
+    C -- ano --> D["Interview konfigurace"]
+
+    subgraph CFG["Doptani konfigurace AGENTS.md"]
+      D --> D1[/"Poslat GitHub URL"/] --> D2["Odvodit OWNER + REPO"]
+      D2 --> EX{"Existuje repo?<br/>(zeptat se ANO/NE)"}
+      EX -- ne --> CR["Zalozit pres web: github.com/new<br/>zaskrtnout Add a README = vetev main"] --> D3
+      EX -- ano --> D3{"LANG?"}
+      D3 --> D4{"DEPLOY_PROVIDER?"}
+      D4 -- CLOUDFLARE --> E1{"PAGES / WORKERS?"}
+      E1 -- WORKERS --> E2["PREVIEW = *-REPO.sdlc-ai.workers.dev"]
+      E1 -- PAGES --> E3["PREVIEW = *.REPO.pages.dev"]
+      E2 --> E4[/"SITE_URL"/]
+      E3 --> E4
+      D4 -- DOCKER --> F1[/"DOCKERFILE_PATH, PORT"/] --> F2[/"SITE_URL"/]
+      D4 -- zadny --> G1["deploy = N/A"]
+      E4 --> H{"GATE_APPROVAL_MODE?"}
+      F2 --> H
+      G1 --> H
+      H --> I["Ukazat env blok<br/>k potvrzeni"]
+    end
+
+    I --> J["Nastaveni GitHub repa"]
+
+    subgraph REPO["Nastaveni repa - jednorazova admin akce"]
+      J --> J1{"Jsi admin repa?"}
+      J1 -- ne --> JB(["BLOCKED: pozadat admina"])
+      J1 -- ano --> J2{"github.com otevren<br/>a prihlasen?"}
+      J2 -- ne --> J3["Clovek se prihlasi"] --> J2
+      J2 -- ano --> K{"Default prohlizec<br/>= Chrome?"}
+      K -- "ne (Safari/jiny = bez automatiky)" --> KS{"Nainstalovat Chrome?"}
+      KS -- ne --> M["RUCNI KLIKANI<br/>krok za krokem"]
+      KS -- ano --> K1
+      K -- ano --> K1{"Rozsireni agenta<br/>Claude / Codex?"}
+      K1 -- ne --> K2["Instalace rozsireni<br/>dle agenta"] --> K3
+      K1 -- ano --> K3{"Lze prohlizec<br/>ovladnout?"}
+      K3 -- ne --> M
+      K3 -- ano --> L["Agent proklikne Settings"]
+      L --> N["Overit nastaveni"]
+      M --> N
+      N --> N1{"Verify OK?<br/>protection + issues + merge"}
+      N1 -- ne --> M
+      N1 -- ano --> O["Repo pripraveno"]
+    end
+
+    O --> R{"READ pristup udelen?"}
+    R -- ne --> RB(["BLOCKED: cekat na pristup"])
+    R -- ano --> P["Pracovni pristup agenta<br/>vychozi: GitHub Desktop (klikani)<br/>alt: restricted PAT v terminalu"]
+    P --> Q["Klon do slozky"]
+    Q --> S["Nalinkovat metodiku: do projektu jen AGENTS.md + README.md<br/>vsechny odkazy miri na .md v erikni/sdlc-ai"]
+    S --> T["Inicializacni PR + sekce Co schvalujete"]
+    T --> U{"SCHVALIT PR?<br/>(lze z GitHub Mobile)"}
+    U -- ne --> T
+    U -- ano --> VM["Merge do main"]
+    VM --> W{"DEPLOY_PROVIDER?"}
+    W -- zadny --> X
+    W -- "CF / Docker" --> CI["Bezi CI + deploy<br/>v projektovem repu"]
+    CI --> CW["Cekat na dokonceni (max 5 min)"]
+    CW --> CV{"Deploy OK?"}
+    CV -- ne --> CF2["Report / BLOCKED"]
+    CV -- ano --> CR2["Overit preview URL / SITE_URL"]
+    CR2 --> X(["Shrnuti + prvni zadani"])
