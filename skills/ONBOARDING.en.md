@@ -1,6 +1,6 @@
 # ONBOARDING – initial setup guide
 
-**Version:** 3.0.0 · **Type:** skill triggered on instruction
+**Version:** 2.0.1 · **Type:** skill triggered on instruction
 
 Executable procedure for an AI agent that runs on the user's computer (for example Claude Code or OpenAI Codex) and leads a human step by step through the setup. The human need not be a programmer. The binding rules and the public/private boundary are in the public [AGENTS.md](../AGENTS.md); the human-facing click steps are in [README.md](../README.md). This skill holds the detailed phases and verification commands and does not duplicate those normative instructions.
 
