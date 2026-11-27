@@ -2,15 +2,23 @@
 
 A guide for non-programmers. The AI agent runs on your computer, for example in Claude Code or OpenAI Codex, and works with GitHub on your behalf. Setup takes about 20 minutes and you do it only once. After that you assign work in plain language and just approve the results.
 
-This repository (`erikni/sdlc-ai-init`) is the **public bootstrap**: it is enough to start the setup. The full SDLC.AI methodology lives in the separate private repository `erikni/sdlc-ai` and is installed into your project only if you have been granted access to it (see [What happens next](#what-happens-next)).
+This repository (`erikni/sdlc-ai-init`) is the **public bootstrap**: it is enough to start the setup. The full SDLC.AI methodology lives in the separate private repository `erikni/sdlc-ai` and is linked into your project only if you have been granted access to it (see [What happens next](#what-happens-next)).
 
 - **For you (a human):** this `README.md`.
 - **For your agent:** [AGENTS.md](AGENTS.md) — the binding bootstrap workflow.
 
-**What you will need**
+## Before you start: a meeting and your variant
+
+Onboarding starts with a short meeting with Erik — book it at [calendly.com/erik-brozek](https://calendly.com/erik-brozek). There you choose the SDLC.AI variant:
+
+- **Own development** — you build the project together with the agent on your computer. You ask Erik for **READ access** to the methodology repository `erikni/sdlc-ai`; without it the agent cannot install the methodology. This guide is for you.
+- **Outsourcing** — Erik or his team handle the development. You do not need access to the methodology and do not run this setup yourself.
+
+**What you will need (own development)**
 
 - an account on [github.com](https://github.com) (free);
-- an AI agent tool installed on your computer.
+- an AI agent tool installed on your computer;
+- READ access to `erikni/sdlc-ai`, requested at the meeting.
 
 ## Fastest path: let the agent guide you
 
@@ -21,7 +29,7 @@ Guide me through the initial setup of a new project per skills/ONBOARDING.en.md
 from the erikni/sdlc-ai-init repository. I am not a programmer, lead me step by step.
 ```
 
-The agent will guide you through everything described below: it checks what is missing on the computer, tells you where to click, verifies each step itself, and offers to do by a command whatever can be done by a command. Never write passwords or access keys into the conversation; you enter them only yourself, in the browser or your own terminal window.
+The agent will guide you through everything described below: it checks what is missing on the computer, asks you for the project's GitHub address and a few settings (it assumes nothing — it only derives the owner and repository name from the address and has you confirm them), tells you where to click, and verifies each step itself. Never write passwords or access keys into the conversation; you enter them only yourself, in the browser or your own terminal window.
 
 The rest of this guide describes the same steps in case you want to go through them yourself. Steps 1–4 are on the GitHub website, step 5 on your computer, and from step 6 the agent works.
 
@@ -39,11 +47,13 @@ Button names are given in English as GitHub shows them. GitHub occasionally adju
 
 ## Step 1 – Create the repository
 
+If the repository already exists, skip to step 2. The agent will ask you YES/NO whether it exists, because for a private repository it cannot check reliably.
+
 1. Open <https://github.com/new>.
 2. **Owner:** select your account.
 3. **Repository name:** write a project name without spaces or diacritics, for example `my-project`.
 4. Choose visibility: **Public** (anyone can see it) or **Private** (only you and invitees).
-5. Enable adding a README file (**Add README**). This matters: it creates the `main` branch, without which the agent cannot start.
+5. Enable adding a README file (**Add a README**). This matters: it creates the `main` branch, without which the agent cannot start.
 6. Click **Create repository**.
 
 ✅ Done when you see the repository page with a `README.md` file and the `main` branch at the top left.
@@ -76,9 +86,18 @@ Protection ensures nothing reaches the main branch except through a proposed cha
 3. Scroll down to the **Pull Requests** section and confirm **Allow merge commits** is checked.
 4. In the same place, check **Automatically delete head branches**. Working branches will then clean up after approval.
 
-## Step 4 – Create an access key for the agent
+> Steps 1–3 are the one-time repository setup. The agent can click them for you in **Chrome** with its extension (Claude / Codex); on a Mac whose default browser is Safari, it cannot automate them, so install Chrome or do these steps by hand.
 
-A token is a key the agent uses to work in your repository on your behalf. This type of key applies to only one repository and only to the activities you permit. With it, the agent cannot change settings, delete the repository, or touch your other projects.
+## Step 4 – Choose how the agent accesses your repository
+
+The agent needs to sign in to work in your repository. Pick the option that suits you; the agent offers both and recommends the first.
+
+| Option | What it means |
+|---|---|
+| **Restricted access key (recommended)** | a key that works for only one repository and only for the activities you permit. The agent cannot change settings, delete the repository, or touch your other projects. Create it as in the steps below. |
+| **GitHub Desktop (easiest)** | you sign in once in the [GitHub Desktop](https://desktop.github.com/download) app and the agent works through it without a key. Simpler, but the agent then has your full account rights across all your repositories — a conscious trade-off for convenience. |
+
+If you choose GitHub Desktop, install it, sign in (**Settings → Accounts → Sign in**), and continue at step 5 (you can skip creating a key). Otherwise create the restricted key:
 
 1. Click your profile picture at the top right and choose **Settings**.
 2. In the left menu, at the very bottom, click **Developer settings**.
@@ -110,17 +129,18 @@ The agent works with GitHub through the GitHub CLI (`gh`) program, which runs on
 
 1. Install [Git](https://git-scm.com/downloads), [GitHub CLI](https://cli.github.com/), and [Python](https://www.python.org/downloads/). For each, download the installer for your system and click through it with the default options.
 2. Open a terminal window: on Mac the **Terminal** app, on Windows **PowerShell**.
-3. Sign the agent in with the key from step 4. Type the command, press Enter, paste the key, Enter again, and then Ctrl+D (on Windows Ctrl+Z and Enter):
+3. Sign the agent in. With the **restricted key** from step 4, type the command, press Enter, paste the key, Enter again, and then Ctrl+D (on Windows Ctrl+Z and Enter):
 
    ```bash
    gh auth login --with-token
    ```
 
+   With **GitHub Desktop**, you are already signed in; for `gh` commands run `gh auth login --web` once.
 4. Pick a folder for the project on your computer and open your agent tool in it.
 
-✅ Done when the command `gh auth status` prints your account and a token starting with `github_pat_`.
+✅ Done when the command `gh auth status` prints your account (with the restricted key, a token starting with `github_pat_`).
 
-Enter the key only in the terminal window, never in the conversation with the agent. Signing in via a browser with `gh auth login` is simpler, but the agent then has the same rights as you across all your repositories; a restricted key is safer.
+Enter the key only in the terminal window, never in the conversation with the agent.
 
 ## Step 6 – Give the agent the instruction
 
@@ -128,7 +148,7 @@ Copy this text into the conversation with the agent and fill in the values in an
 
 ```text
 Initialize a new SDLC.AI project per AGENTS.md from the erikni/sdlc-ai-init repository.
-Repository: <your-account>/<project-name>
+Repository: https://github.com/<your-account>/<project-name>
 Methodology version: latest released
 Communication language: English
 Project website: <address, or "none yet">
@@ -136,10 +156,12 @@ Deployment: <"Cloudflare", "local Docker", or "none">
 Changes are approved by: <your name>
 ```
 
+The agent derives the owner and repository name from the address and has you confirm them, then asks for anything else it needs (for Cloudflare, whether it is Pages or Workers, so it can derive the preview address).
+
 ## What happens next
 
 1. The agent verifies it has access to your repository. To install the methodology it also needs access to the private `erikni/sdlc-ai`. If you do not have that access, the agent stops and reports `BLOCKED` with an explanation — it never reads or bypasses the private repository. Ask the methodology owner for access.
-2. With access, it copies the SDLC.AI rules into your project and adds the shared CI / preview / production workflows as thin caller files (the logic stays centralized here, so later updates reach your project without rewriting the files).
+2. With access, it **links** the methodology into your project: only `AGENTS.md` (filled in for your project) and a note in `README.md` are added; every other methodology document stays in `erikni/sdlc-ai` and is referenced by link, so later updates reach you without rewriting files. It also adds the shared CI / preview / production workflows as thin caller files.
 3. It checks that everything is ready: access, main branch protection, settings, and the links in the documents.
 4. It sends you a request starting with the heading **"What you are approving"**. It contains a link to the proposed change, a **Diff** link (shows exactly what changes), and a list of changed files.
 5. If you agree, reply `SCHVÁLIT PR`. If you want something different, write `DOPLNIT ZADÁNÍ` and what should change.
@@ -176,7 +198,9 @@ The agent never approves its own work and includes nothing in the main branch wi
 
 If the project is to run on the internet, you additionally need an account with a provider (the methodology has a ready procedure for Cloudflare) and storing its access key among the repository secrets: **Settings → Secrets and variables → Actions → New repository secret**. The shared production workflow then reads it by name. This step is more technical; we recommend doing it with someone experienced. Without it, everything else works, only the result does not publish itself.
 
-If you just want to run on your own computer without a provider account, set `DEPLOY_PROVIDER=DOCKER` and the project will run in a local Docker container.
+If you just want to run on your own computer without a provider account, set deployment to local Docker and the project will run in a local Docker container.
+
+After a change is approved and merged, a deployment runs automatically. The agent waits for it to finish — at most 5 minutes — and then checks the preview or your website address. If it does not finish in time or fails, the agent reports it rather than guessing.
 
 No webhooks or other integrations are required by the methodology.
 
@@ -186,9 +210,10 @@ No webhooks or other integrations are required by the methodology.
 |---|---|
 | The **Settings** tab is missing in the repository | you are not signed in with the account that owns the repository |
 | The ruleset cannot be enabled or does not apply | the repository is **Private** on a free plan; change it to **Public** (Settings → General → at the very bottom **Change visibility**), or switch to a paid plan |
+| The agent cannot click the setup in the browser | automation works only in Chrome with the agent's extension; install Chrome, or do steps 1–3 by hand |
 | The agent reports it has no access | check the repository selected in step 4 and the three permissions; the key may also have expired |
-| The agent reports it has no access to the methodology | the `erikni/sdlc-ai` repository is private; ask its owner for access. The public bootstrap alone lets you start, but the methodology installs only with access |
-| The agent reports `BLOCKED` | it writes what blocks it and what unblocks it; usually a setting from steps 2–5 is missing |
+| The agent reports it has no access to the methodology | the `erikni/sdlc-ai` repository is private; ask its owner for READ access. The public bootstrap alone lets you start, but the methodology installs only with access |
+| The agent reports `BLOCKED` | it writes what blocks it and what unblocks it; usually a setting from steps 1–5, access to the methodology, or a deployment that did not finish |
 | You accidentally pasted the key somewhere | revoke it immediately on the **Fine-grained tokens** page and create a new one |
 
 ## For advanced users
